@@ -1,0 +1,117 @@
+.model small
+.stack 100h
+
+.data
+    nombreDirectorio db 'E:\emu8086\MyBuild\NombreEstudiante\', 0
+    nombreArchivo db 'E:\emu8086\MyBuild\NombreEstudiante\ApellidoEstudiante.txt', 0
+    mensaje db 'hipopotomonstrosesquipedaliofobia', 0
+    longitudMensaje equ $-mensaje
+    manejadorArchivo dw ?
+    promptMsg db 'Presiona Enter para continuar...$', 0
+
+    msgCrearCarpeta db 'Intentando crear la carpeta NombreEstudiante...', 13, 10, '$'
+    msgCarpetaCreada db 'Carpeta creada con exito.', 13, 10, '$'
+    msgCrearArchivo db 'Creando archivo ApellidoEstudiante.txt...', 13, 10, '$'
+    msgEscribirArchivo db 'Escribiendo en el archivo...', 13, 10, '$'
+    msgCerrarArchivo db 'Cerrando el archivo...', 13, 10, '$'
+    msgBorrarArchivo db 'Borrando el archivo...', 13, 10, '$'
+    msgBorrarCarpeta db 'Intentando borrar la carpeta NombreEstudiante...', 13, 10, '$'
+    msgCarpetaBorrada db 'Carpeta borrada con exito.', 13, 10, '$'
+    msgError db 'Error en la operacion.', 13, 10, '$'
+
+.code
+inicio:
+    mov ax, @data
+    mov ds, ax
+
+    ; Intentar crear el directorio
+    lea dx, msgCrearCarpeta
+    call ImprimirMensaje
+    mov ah, 39h    
+    lea dx, nombreDirectorio   
+    int 21h      
+    jc errorCreacion
+
+    lea dx, msgCarpetaCreada
+    call ImprimirMensaje
+
+    ; Crear archivo
+    lea dx, msgCrearArchivo
+    call ImprimirMensaje
+    mov ah, 3Ch
+    mov cx, 0
+    lea dx, nombreArchivo
+    int 21h
+    mov manejadorArchivo, ax
+
+    ; Escribir en el archivo
+    lea dx, msgEscribirArchivo
+    call ImprimirMensaje
+    mov ah, 40h
+    mov bx, [manejadorArchivo]
+    lea dx, mensaje
+    mov cx, 33
+    int 21h 
+
+
+    ; Cerrar el archivo
+    lea dx, msgCerrarArchivo
+    call ImprimirMensaje
+    mov ah, 3Eh
+    mov bx, manejadorArchivo
+    int 21h
+
+    call Pausa ;
+
+    ; Borrar el archivo
+    lea dx, msgBorrarArchivo
+    call ImprimirMensaje
+    mov ah, 41h
+    lea dx, nombreArchivo
+    int 21h
+
+
+    ; Borrar el directorio
+    lea dx, msgBorrarCarpeta
+    call ImprimirMensaje
+    mov ah, 3Ah
+    lea dx, nombreDirectorio
+    int 21h
+    jc errorEliminacion
+    lea dx, msgCarpetaBorrada
+    call ImprimirMensaje
+
+    jmp fin
+
+errorCreacion:
+    lea dx, msgError
+    call ImprimirMensaje
+    jmp fin
+
+errorEliminacion:
+    lea dx, msgError
+    call ImprimirMensaje
+
+fin:
+   
+    mov ax, 4C00h
+    int 21h
+
+Pausa proc
+    lea dx, promptMsg
+    mov ah, 09h
+    int 21h 
+    mov ah, 01h
+    int 21h 
+    ret
+Pausa endp     
+
+ImprimirMensaje proc
+    mov ah, 09h
+    int 21h 
+    ret
+ImprimirMensaje endp
+
+
+
+end inicio
